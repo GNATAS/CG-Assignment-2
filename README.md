@@ -1,3 +1,24 @@
+# Assignment 2 — Future Me: Empty Room
+
+Current scene: an 800 × 600 room with a floor, ceiling, walls, skirting,
+and a large framed window on the left, based on the supplied reference.
+The room is intentionally unfurnished. Colours are flat; textures and
+the assignment's required lighting model are still future work.
+
+- Edit room geometry in `src/main.cpp` → `DrawRoom()`.
+- Coordinates: Y is up, floor Y = 0, back wall Z = -3, window wall X = -4.
+- Room interior: X from -4 to 4, Z from -3 to 5, height 3.6.
+- Adjust `glm::lookAt` in `main()` to change the camera.
+- Run the existing `OpenGLStarter` target; press Escape to exit.
+- Optional: `OpenGLStarter --capture room.ppm` saves the framebuffer and exits.
+  PPM is a development preview, not the required PNG/JPG submission format.
+
+The project retains the starter's filenames during development. Before submission,
+prepare the required `Assignment2_studentID.cpp`, shaders, any assets, and the
+PNG/JPG capture named with both student IDs. This blockout is not the final assignment.
+
+The original starter setup instructions follow.
+
 # OpenGL Starter
 
 [![Build](https://github.com/momotheoxy/OpenGLStarter/actions/workflows/build.yml/badge.svg)](https://github.com/momotheoxy/OpenGLStarter/actions/workflows/build.yml)
@@ -13,7 +34,7 @@ The project uses:
 - **vcpkg** — automatic C++ dependency installation
 - **VS Code** — recommended editor/IDE for the lab
 
-After a successful build, the program opens a window and draws a red triangle.
+After a successful build, the program opens a window and draws the empty room.
 
 > You do **not** need to download GLEW, GLFW or GLM manually. vcpkg installs them during CMake configuration.
 
@@ -254,7 +275,7 @@ Choose the matching debug configuration if VS Code asks:
 - macOS → `Debug (macOS - LLDB)`
 - Linux → `Debug (Linux - GDB)`
 
-You should see a black window with a **red triangle**.
+You should see the **empty room with a large window on the left**.
 
 ---
 

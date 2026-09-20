@@ -1,8 +1,9 @@
 #version 330 core
 
 out vec4 colour;
+uniform vec3 objectColour;
 
 void main()
 {
-    colour = vec4(1.0, 0.0, 0.0, 1.0); 
+    colour = vec4(objectColour, 1.0);
 }
