@@ -3,19 +3,34 @@
 
 #include <GL/glew.h>
 
+#include <vector>
+
+struct Vertex
+{
+    GLfloat x, y, z;
+    GLfloat u, v;
+    GLfloat nx, ny, nz;
+};
+
 class Mesh
 {
-    public:
-        Mesh();
-        ~Mesh();
+public:
+    Mesh();
+    ~Mesh();
 
-        void CreateMesh(GLfloat* vertices, unsigned int* indices, unsigned int numOfVertices, unsigned int numOfIndices);
-        void RenderMesh();
-        void ClearMesh();
+    Mesh(const Mesh&) = delete;
+    Mesh& operator=(const Mesh&) = delete;
+    Mesh(Mesh&& other) noexcept;
+    Mesh& operator=(Mesh&& other) noexcept;
 
-    private:
-        GLuint VAO, VBO, IBO;
-        GLsizei indexCount;
+    bool CreateMesh(const std::vector<Vertex>& vertices,
+                    const std::vector<unsigned int>& indices);
+    void RenderMesh() const;
+    void ClearMesh();
+
+private:
+    GLuint VAO, VBO, IBO;
+    GLsizei indexCount;
 };
 
 #endif

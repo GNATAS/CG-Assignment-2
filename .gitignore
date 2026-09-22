@@ -19,6 +19,8 @@ CMakeUserPresets.json
 *.lib
 *.pdb
 *.obj
+# Wavefront model assets are source data, not compiler output.
+!model/Assets/Models/**/*.obj
 *.o
 *.a
 
