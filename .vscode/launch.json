@@ -5,8 +5,9 @@
       "name": "Debug (Windows - MSVC)",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${command:cmake.launchTargetPath}",
-      "cwd": "${command:cmake.getLaunchTargetDirectory}",
+      "program": "${workspaceFolder}/build/win-msvc-2026/Debug/OpenGLStarter.exe",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Build Assignment 2 (Debug)",
       "console": "integratedTerminal"
     },
     {

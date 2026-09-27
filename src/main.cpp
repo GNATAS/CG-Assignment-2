@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "Libs/Mesh.h"
+#include "Libs/Environment.h"
 #include "Libs/Model.h"
 #include "Libs/Shader.h"
 #include "Libs/Texture.h"
@@ -77,6 +78,9 @@ struct SceneAssets
     Model monitor;
     Model keyboard;
     Model mouse;
+    Model plant;
+    Model bookshelf;
+    Model lamp;
     Texture errorScreen;
 
     bool Load(const std::filesystem::path& assetRoot)
@@ -87,6 +91,9 @@ struct SceneAssets
                monitor.Load(models / "monitor" / "monitor.obj") &&
                keyboard.Load(models / "keyboard" / "keyboard.obj") &&
                mouse.Load(models / "mouse" / "mouse.obj") &&
+               plant.Load(models / "potted_plant_01" / "potted_plant_01.obj") &&
+               bookshelf.Load(models / "wooden_bookshelf_worn" / "wooden_bookshelf_worn.obj") &&
+               lamp.Load(models / "desk_lamp_arm_01" / "desk_lamp_arm_01.obj") &&
                errorScreen.Load(assetRoot / "Textures" / "screen_error.png");
     }
 };
@@ -103,7 +110,7 @@ const SceneTransform mouseTransform{{0.55f, 0.754f, -0.14f}, {1.0f, 1.0f, 1.0f},
 
 const glm::vec3 cameraPosition(0.80f, 2.00f, -2.45f);
 const glm::vec3 cameraTarget(0.0f, 0.95f, 0.38f);
-constexpr float cameraFovDegrees = 46.0f;
+constexpr float cameraFovDegrees = 52.0f;
 
 const Material texturedMaterial{{1.0f, 1.0f, 1.0f}, true, 0.0f, 0.12f, 28.0f};
 
@@ -167,35 +174,6 @@ void DrawModel(const Model& model, const SceneTransform& transform,
     model.Render();
 }
 
-bool CreateCube(Mesh& cube)
-{
-    const std::vector<Vertex> vertices{
-        // Back
-        {-.5f,-.5f,-.5f, 0,0, 0,0,-1}, { .5f,-.5f,-.5f, 1,0, 0,0,-1},
-        { .5f, .5f,-.5f, 1,1, 0,0,-1}, {-.5f, .5f,-.5f, 0,1, 0,0,-1},
-        // Front
-        {-.5f,-.5f, .5f, 0,0, 0,0, 1}, { .5f,-.5f, .5f, 1,0, 0,0, 1},
-        { .5f, .5f, .5f, 1,1, 0,0, 1}, {-.5f, .5f, .5f, 0,1, 0,0, 1},
-        // Left
-        {-.5f,-.5f,-.5f, 0,0,-1,0,0}, {-.5f,-.5f, .5f, 1,0,-1,0,0},
-        {-.5f, .5f, .5f, 1,1,-1,0,0}, {-.5f, .5f,-.5f, 0,1,-1,0,0},
-        // Right
-        { .5f,-.5f,-.5f, 0,0, 1,0,0}, { .5f, .5f,-.5f, 0,1, 1,0,0},
-        { .5f, .5f, .5f, 1,1, 1,0,0}, { .5f,-.5f, .5f, 1,0, 1,0,0},
-        // Bottom
-        {-.5f,-.5f,-.5f, 0,0, 0,-1,0}, { .5f,-.5f,-.5f, 1,0, 0,-1,0},
-        { .5f,-.5f, .5f, 1,1, 0,-1,0}, {-.5f,-.5f, .5f, 0,1, 0,-1,0},
-        // Top
-        {-.5f, .5f,-.5f, 0,0, 0,1,0}, {-.5f, .5f, .5f, 0,1, 0,1,0},
-        { .5f, .5f, .5f, 1,1, 0,1,0}, { .5f, .5f,-.5f, 1,0, 0,1,0}
-    };
-    const std::vector<unsigned int> indices{
-         0, 2, 1,  0, 3, 2,  4, 5, 6,  4, 6, 7,
-         8, 9,10,  8,10,11, 12,13,14, 12,14,15,
-        16,17,18, 16,18,19, 20,21,22, 20,22,23
-    };
-    return cube.CreateMesh(vertices, indices);
-}
 
 bool CreateQuad(Mesh& quad)
 {
@@ -209,80 +187,6 @@ bool CreateQuad(Mesh& quad)
     return quad.CreateMesh(vertices, indices);
 }
 
-glm::mat4 BoxMatrix(const glm::vec3& position, const glm::vec3& size)
-{
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), position);
-    return glm::scale(model, size);
-}
-
-void DrawRoom(const Mesh& cube, const ShaderUniforms& uniforms)
-{
-    auto box = [&](const glm::vec3& position, const glm::vec3& size,
-                   const glm::vec3& colour, float emissive = 0.0f) {
-        DrawMesh(cube, BoxMatrix(position, size),
-                 {colour, false, emissive, 0.04f, 12.0f}, uniforms);
-    };
-
-    const glm::vec3 wall(0.18f, 0.16f, 0.17f);
-    const glm::vec3 frame(0.055f, 0.065f, 0.085f);
-
-    box({0.0f, -0.06f, -0.10f}, {6.4f, 0.12f, 6.4f}, {0.105f, 0.072f, 0.052f});
-    box({0.0f, 2.85f, -0.10f}, {6.4f, 0.10f, 6.4f}, {0.105f, 0.095f, 0.105f});
-    box({-3.15f, 1.40f, -0.10f}, {0.10f, 2.8f, 6.4f}, wall);
-    box({ 3.15f, 1.40f, -0.10f}, {0.10f, 2.8f, 6.4f}, wall);
-
-    // Back wall sections leave a large window opening behind the monitors.
-    box({0.0f, 0.28f, 2.95f}, {6.4f, 0.56f, 0.12f}, wall);
-    box({0.0f, 2.69f, 2.95f}, {6.4f, 0.32f, 0.12f}, wall);
-    box({-2.68f, 1.49f, 2.95f}, {0.96f, 1.90f, 0.12f}, wall);
-    box({ 2.68f, 1.49f, 2.95f}, {0.96f, 1.90f, 0.12f}, wall);
-
-    box({0.0f, 1.50f, 3.04f}, {4.36f, 1.86f, 0.025f}, {0.012f, 0.028f, 0.065f}, 0.05f);
-
-    struct Building { float x, width, height; glm::vec3 colour; };
-    const std::array<Building, 7> buildings{{
-        {-1.88f, 0.42f, 0.95f, {0.025f,0.035f,0.055f}},
-        {-1.36f, 0.52f, 1.42f, {0.035f,0.045f,0.070f}},
-        {-0.76f, 0.45f, 1.10f, {0.020f,0.032f,0.060f}},
-        {-0.18f, 0.60f, 1.65f, {0.030f,0.040f,0.072f}},
-        { 0.53f, 0.50f, 1.25f, {0.022f,0.037f,0.067f}},
-        { 1.16f, 0.58f, 1.55f, {0.030f,0.043f,0.075f}},
-        { 1.84f, 0.38f, 0.88f, {0.020f,0.032f,0.052f}}
-    }};
-    for (std::size_t buildingIndex = 0; buildingIndex < buildings.size(); ++buildingIndex)
-    {
-        const Building& building = buildings[buildingIndex];
-        box({building.x, 0.57f + building.height * 0.5f, 3.005f},
-            {building.width, building.height, 0.035f}, building.colour);
-
-        const int columns = building.width > 0.5f ? 3 : 2;
-        const int rows = static_cast<int>(building.height / 0.22f);
-        for (int row = 0; row < rows; ++row)
-        {
-            for (int column = 0; column < columns; ++column)
-            {
-                if ((row + column + static_cast<int>(buildingIndex)) % 3 == 0)
-                    continue;
-                const float x = building.x +
-                    (column - (columns - 1) * 0.5f) * building.width / columns * 0.72f;
-                const float y = 0.68f + row * 0.20f;
-                const glm::vec3 lightColour = (row + column) % 4 == 0
-                    ? glm::vec3(0.28f, 0.52f, 0.80f)
-                    : glm::vec3(0.95f, 0.62f, 0.24f);
-                box({x, y, 2.978f}, {0.055f, 0.075f, 0.012f}, lightColour, 1.25f);
-            }
-        }
-    }
-
-    // Window surround and mullions sit in front of the city planes.
-    for (float x : {-2.22f, -0.74f, 0.74f, 2.22f})
-        box({x, 1.50f, 2.88f}, {0.075f, 1.94f, 0.075f}, frame);
-    for (float y : {0.55f, 1.50f, 2.46f})
-        box({0.0f, y, 2.88f}, {4.50f, 0.075f, 0.075f}, frame);
-
-    // A small warm wall fixture gives the second light a visible source.
-    box({-2.98f, 2.16f, 0.85f}, {0.10f, 0.24f, 0.42f}, {1.0f, 0.43f, 0.16f}, 1.8f);
-}
 
 void DrawMonitorScreens(const Mesh& quad, const SceneAssets& assets,
                         const ShaderUniforms& uniforms)
@@ -341,16 +245,20 @@ void SetLights(const ShaderUniforms& uniforms)
     }
 }
 
-void RenderScene(const SceneAssets& assets, const Mesh& cube, const Mesh& quad,
+void RenderScene(const SceneAssets& assets, const Environment& environment, const Mesh& quad,
                  const ShaderUniforms& uniforms)
 {
-    DrawRoom(cube, uniforms);
+    for (const auto& part : environment.parts)
+        DrawMesh(part.mesh, glm::mat4(1), {part.colour,false,part.emissive,0.025f,16.0f}, uniforms);
+    DrawModel(assets.bookshelf, {{2.78f,0.0f,1.05f},{1.85f,1.85f,1.85f},-90.0f}, uniforms);
+    DrawModel(assets.plant, {{-1.30f,0.0f,2.05f},{1.35f,1.35f,1.35f},0.0f}, uniforms);
     DrawModel(assets.person, personTransform, uniforms);
     DrawModel(assets.desk, deskTransform, uniforms);
     for (const SceneTransform& monitor : monitorTransforms)
         DrawModel(assets.monitor, monitor, uniforms);
     DrawModel(assets.keyboard, keyboardTransform, uniforms);
     DrawModel(assets.mouse, mouseTransform, uniforms);
+    DrawModel(assets.lamp, {{-0.60f,0.754f,-0.12f},{0.43f,0.43f,0.43f},180.0f}, uniforms);
     DrawMonitorScreens(quad, assets, uniforms);
 }
 
@@ -373,7 +281,7 @@ bool Capture(const std::filesystem::path& path, int width, int height)
 int main(int argc, char** argv)
 {
     const bool capture = argc == 3 && std::string(argv[1]) == "--capture";
-    Window window(1280, 720, 3, 3);
+    Window window(800, 600, 3, 3);
     if (window.initialise() != 0)
         return 1;
     glfwSetWindowTitle(window.getWindow(),
@@ -382,9 +290,11 @@ int main(int argc, char** argv)
         glfwHideWindow(window.getWindow());
 
     // GPU resources are destroyed before the window and its OpenGL context.
-    Mesh cube;
     Mesh quad;
-    if (!CreateCube(cube) || !CreateQuad(quad))
+    if (!CreateQuad(quad))
+        return 1;
+    Environment environment;
+    if (!environment.Build())
         return 1;
 
     SceneAssets assets;
@@ -429,7 +339,7 @@ int main(int argc, char** argv)
         glUniformMatrix4fv(uniforms.view, 1, GL_FALSE, glm::value_ptr(camera));
         glUniformMatrix4fv(uniforms.projection, 1, GL_FALSE, glm::value_ptr(perspective));
         SetLights(uniforms);
-        RenderScene(assets, cube, quad, uniforms);
+        RenderScene(assets, environment, quad, uniforms);
 
         if (capture)
         {

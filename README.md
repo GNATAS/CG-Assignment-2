@@ -1,21 +1,61 @@
-# Assignment 2 — Future Me: Empty Room
+# Assignment 2 — Future Me: External Models
 
-Current scene: an 800 × 600 room with a floor, ceiling, walls, skirting,
-and a large framed window on the left, based on the supplied reference.
-The room is intentionally unfurnished. Colours are flat; textures and
-the assignment's required lighting model are still future work.
+The 800 × 600 OpenGL scene contains the pair's original person, desk and computer
+equipment, plus three downloaded Poly Haven props: Potted Plant 01, Wooden
+Bookshelf Worn and Desk Lamp Arm 01. The room, compact framed window and layered
+night city are built from geometry in `src/Libs/Environment.h`; detailed props
+continue to use the downloaded OBJ models.
 
-- Edit room geometry in `src/main.cpp` → `DrawRoom()`.
-- Coordinates: Y is up, floor Y = 0, back wall Z = -3, window wall X = -4.
-- Room interior: X from -4 to 4, Z from -3 to 5, height 3.6.
-- Adjust `glm::lookAt` in `main()` to change the camera.
-- Run the existing `OpenGLStarter` target; press Escape to exit.
-- Optional: `OpenGLStarter --capture room.ppm` saves the framebuffer and exits.
-  PPM is a development preview, not the required PNG/JPG submission format.
+The city has 52 buildings across four depths, rotated footprints, windows on
+four sides, rooftop equipment and antenna lights. The exterior ground is below
+the apartment to suggest a high-rise view. No train or elevated roadway is added.
+The imported bookshelf sits against the screen-left wall and contains coloured
+books aligned with its shelves. A geometry-built bed with a headboard, mattress,
+pillow and duvet occupies the screen-right side. The close rear three-quarter
+camera prioritizes the person and desk; the bookshelf is outside this framing.
+The window opening is 3.30 m wide and 1.38 m high, with gathered curtains.
+Original text-free geometric wall art, a floating shelf with books and a small
+picture frame, and a bordered workstation rug add lived-in room details.
+Static geometry is combined into 20 material batches at startup. Windows are
+open views (no glass/reflection simulation), and building lights use emissive
+colours rather than individually illuminating the room.
 
-The project retains the starter's filenames during development. Before submission,
-prepare the required `Assignment2_studentID.cpp`, shaders, any assets, and the
-PNG/JPG capture named with both student IDs. This blockout is not the final assignment.
+## Run
+
+Build: `cmake --build --preset build-win-2026-debug`
+
+Run: `build/win-msvc-2026/Debug/OpenGLStarter.exe`
+
+Escape exits. Models load before the first frame; Debug builds can show a blank
+window while loading. Optional `--capture build/preview.ppm` saves one rendered
+frame and exits. A PNG preview of the imported props is at
+`build/external-props.png`; the current decorated-room preview is `build/decorated-room.png`.
+
+## Added external assets
+
+See [sources, authors and licence](model/Assets/EXTERNAL_MODEL_CREDITS.md).
+The OBJ, MTL and diffuse atlas for each prop are in `model/Assets/Models/`.
+Their downloaded glTF source geometry, diffuse images and manifests are in the
+corresponding `source/` directory.
+
+The importer `tools/import_polyhaven.py` uses numpy and Pillow. It downloads
+from Poly Haven, verifies checksums, applies source transforms, normalises each
+asset to height 1 and creates one diffuse atlas per OBJ. This lets the existing
+single-material loader render the props without replacing the pair's loader.
+The rendered materials use diffuse colour and Blinn–Phong lighting; source PBR
+roughness/metalness/normal maps and rigging are not imported.
+
+## Verification and handoff
+
+The scene builds and its captured framebuffer is 800 × 600 with GL error 0.
+On-screen flicker previously reported by the user has not been verified fixed.
+The original procedural scene source is backed up locally in
+`build/scene-before-external.cpp`, which is not compiled.
+
+Before Classroom submission, prepare the required `Assignment2_studentID.cpp`,
+shaders/assets and PNG/JPG named with both confirmed student IDs. Include members'
+names/IDs and image/model credits in the submission comment. Deadline:
+23:59 on 19 October 2026.
 
 The original starter setup instructions follow.
 
@@ -34,7 +74,7 @@ The project uses:
 - **vcpkg** — automatic C++ dependency installation
 - **VS Code** — recommended editor/IDE for the lab
 
-After a successful build, the program opens a window and draws the empty room.
+After a successful build, the program opens a window and draws the condo workspace.
 
 > You do **not** need to download GLEW, GLFW or GLM manually. vcpkg installs them during CMake configuration.
 
@@ -275,7 +315,7 @@ Choose the matching debug configuration if VS Code asks:
 - macOS → `Debug (macOS - LLDB)`
 - Linux → `Debug (Linux - GDB)`
 
-You should see the **empty room with a large window on the left**.
+You should see the **nighttime condo workspace with the city behind the monitors**.
 
 ---
 

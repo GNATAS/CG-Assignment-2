@@ -1,0 +1,27 @@
+{
+  "include": {
+    "textures/desk_lamp_arm_01_nor_gl_1k.jpg": {
+      "size": 651826,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/desk_lamp_arm_01/desk_lamp_arm_01_nor_gl_1k.jpg",
+      "md5": "5aabbfe920ea6726d5299be7d6224551"
+    },
+    "textures/desk_lamp_arm_01_arm_1k.jpg": {
+      "size": 780379,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/desk_lamp_arm_01/desk_lamp_arm_01_arm_1k.jpg",
+      "md5": "0b887af80f561216baa3da94d001d51a"
+    },
+    "textures/desk_lamp_arm_01_diff_1k.jpg": {
+      "size": 702522,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/desk_lamp_arm_01/desk_lamp_arm_01_diff_1k.jpg",
+      "md5": "a5c1bf5465da39ca6ca9039dd4e3fd66"
+    },
+    "desk_lamp_arm_01.bin": {
+      "size": 736804,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/desk_lamp_arm_01/desk_lamp_arm_01.bin",
+      "md5": "29ffa5bb6bee35b066e46073124fee1a"
+    }
+  },
+  "size": 4453,
+  "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/desk_lamp_arm_01/desk_lamp_arm_01_1k.gltf",
+  "md5": "29b204485d30e66ee3f183ef45bf4bb3"
+}
