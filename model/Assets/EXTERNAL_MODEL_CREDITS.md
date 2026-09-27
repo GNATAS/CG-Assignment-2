@@ -23,8 +23,8 @@ These assets were converted from BlendKit glTF into OBJ, MTL and diffuse
 textures for the assignment's renderer. Source PBR materials and rigging are
 not reproduced. See [BlendKit license](https://www.blendkit.com/docs/licenses/)
 and [terms](https://www.blendkit.com/terms-and-conditions-2018/) before sharing
-model files. They are ignored by Git to avoid republishing standalone assets
-in the public repository.
+model files. Runtime assets are tracked with this assignment at the project
+owner's request; inclusion does not change their original licenses.
 
 The three active city models contain 65,000, 55,338 and 65,000 triangular
 faces respectively. The glass skyscraper and highrise were decimated for
@@ -52,11 +52,13 @@ must be added to the submission credits when known. The supplied MTL has
 no diffuse image; it was rendered with its `Kd` colour (0.8, 0.8, 0.8).
 The referenced `C:/Light Wood_Normal.exr` was not supplied.
 
-The active curtains are the user's `Models/curtain/Untitled.obj` export
+The active curtains came from the user's `Models/curtain/Untitled.obj` export
 (`Curtain_Right` and `Curtain_Left`). Its 15,150 quad faces were split into
 30,300 triangles in `Models/curtain/curtain.obj`. Panels are gathered to the
 sides by compressing their width and translating them; UVs are retained and
-normals are transformed to match the new geometry. The original export is retained.
+normals are transformed to match the new geometry. Only the triangulated OBJ
+and its required `Untitled.mtl` are retained in the project; the original export
+is recoverable from Git history.
 The renderer uses `Fabric_Smooth_Gray`'s exported `Kd` colour (0.8, 0.8, 0.8).
 No diffuse texture was exported; `C:/Fabric036_2K_NormalGL.jpg` is an external
 normal-map reference, not a supplied diffuse image. Source URL, creator and

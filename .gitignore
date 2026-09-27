@@ -21,9 +21,6 @@ CMakeUserPresets.json
 *.obj
 # Wavefront model assets are source data, not compiler output.
 !model/Assets/Models/**/*.obj
-# BlendKit Royalty Free assets are downloaded locally and must not be
-# republished as standalone model files in this public source repository.
-model/Assets/Models/bk_*/
 *.o
 *.a
 

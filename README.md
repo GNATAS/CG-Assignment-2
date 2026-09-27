@@ -41,9 +41,9 @@ fixed.
 ## External assets and submission
 
 See `model/Assets/EXTERNAL_MODEL_CREDITS.md` for the model names, creators,
-source links and license information. The BlendKit Royalty Free model files
-remain local and are ignored by Git; the public GitHub branch alone does not
-contain a runnable copy of this latest scene.
+source links and license information. Runtime OBJ, MTL and texture files are
+tracked with the assignment so teammates can obtain the complete scene.
+External assets retain their original licenses and attribution requirements.
 
 Before Google Classroom submission, use the confirmed student IDs to prepare
 the required `Assignment2_studentID.cpp`, accompanying shaders/assets and
