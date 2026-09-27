@@ -16,9 +16,9 @@ uniform bool cityLighting;
 
 uniform vec3 viewPosition;
 uniform vec3 ambientColour;
-uniform vec3 lightPositions[3];
-uniform vec3 lightColours[3];
-uniform float lightIntensities[3];
+uniform vec3 lightPositions[4];
+uniform vec3 lightColours[4];
+uniform float lightIntensities[4];
 
 void main()
 {
@@ -29,7 +29,7 @@ void main()
     vec3 viewDirection = normalize(viewPosition - worldPosition);
     vec3 result = baseColour * ambientColour;
 
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < 4; ++i)
     {
         vec3 lightOffset = lightPositions[i] - worldPosition;
         float distanceToLight = length(lightOffset);
@@ -51,7 +51,7 @@ void main()
         // City-only moonlight and window illumination. Atlas alpha identifies
         // glass from the imported facade; no freestanding window rectangles.
         float moon = max(dot(normal, normalize(vec3(-.4,.8,-.6))), 0.0);
-        result = baseColour * vec3(.20,.25,.36) * (.45 + .55 * moon);
+        result = baseColour * vec3(.30,.36,.50) * (.58 + .34 * moon) + vec3(.012,.018,.035);
         float glass = texture(diffuseTexture, textureCoordinate).a;
         // Window bays in the facade material, with dark mullions between them.
         vec2 facadeUV = abs(normal.x)>abs(normal.z) ? worldPosition.zy : worldPosition.xy;
@@ -60,11 +60,11 @@ void main()
         glass *= 1.0-step(.45,abs(normal.y));
         vec3 cell = floor(worldPosition * vec3(1.30,.90,1.30));
         float hash = fract(sin(dot(cell,vec3(12.9898,78.233,37.719))) * 43758.5453);
-        vec3 pane = hash > .68 ? (hash > .92 ? vec3(.33,.56,.70) : vec3(.72,.48,.23))
-                              : vec3(.018,.035,.064);
+        vec3 pane = hash > .60 ? (hash > .90 ? vec3(.46,.72,.92) : vec3(.95,.66,.32))
+                              : vec3(.030,.055,.095);
         result = mix(result, pane, glass);
-        float haze = clamp((length(viewPosition-worldPosition)-25.0)/150.0,0.0,.55);
-        result = mix(result,vec3(.020,.030,.052),haze);
+        float haze = clamp((length(viewPosition-worldPosition)-25.0)/175.0,0.0,.34);
+        result = mix(result,vec3(.035,.050,.082),haze);
     }
     colour = vec4(result, 1.0);
 }

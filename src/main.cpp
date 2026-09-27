@@ -53,9 +53,9 @@ struct ShaderUniforms
     GLint viewPosition;
     GLint ambientColour;
     GLint cityLighting;
-    std::array<GLint, 3> lightPositions;
-    std::array<GLint, 3> lightColours;
-    std::array<GLint, 3> lightIntensities;
+    std::array<GLint, 4> lightPositions;
+    std::array<GLint, 4> lightColours;
+    std::array<GLint, 4> lightIntensities;
 
     bool IsValid() const
     {
@@ -64,7 +64,7 @@ struct ShaderUniforms
             specularStrength < 0 || shininess < 0 || viewPosition < 0 ||
             ambientColour < 0 || cityLighting < 0)
             return false;
-        for (int i = 0; i < 3; ++i)
+        for (int i = 0; i < 4; ++i)
         {
             if (lightPositions[i] < 0 || lightColours[i] < 0 || lightIntensities[i] < 0)
                 return false;
@@ -149,7 +149,7 @@ ShaderUniforms GetUniforms(const Shader& shader)
         shader.GetUniformLocation("cityLighting"),
         {}, {}, {}
     };
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < 4; ++i)
     {
         const std::string suffix = "[" + std::to_string(i) + "]";
         uniforms.lightPositions[i] = shader.GetUniformLocation(("lightPositions" + suffix).c_str());
@@ -216,9 +216,9 @@ bool CreateQuad(Mesh& quad)
 void DrawMonitorScreens(const Mesh& quad, const SceneAssets& assets,
                         const ShaderUniforms& uniforms)
 {
-    const Material sideScreen{{0.018f, 0.045f, 0.085f}, false, 0.34f, 0.0f, 8.0f};
-    const Material codeBlue{{0.12f, 0.55f, 0.90f}, false, 0.75f, 0.0f, 8.0f};
-    const Material codeViolet{{0.53f, 0.28f, 0.92f}, false, 0.70f, 0.0f, 8.0f};
+    const Material sideScreen{{0.014f, 0.030f, 0.060f}, false, 0.24f, 0.0f, 8.0f};
+    const Material codeBlue{{0.10f, 0.42f, 0.78f}, false, 0.60f, 0.0f, 8.0f};
+    const Material codeViolet{{0.42f, 0.25f, 0.72f}, false, 0.56f, 0.0f, 8.0f};
 
     for (int monitorIndex : {0, 2})
     {
@@ -243,26 +243,29 @@ void DrawMonitorScreens(const Mesh& quad, const SceneAssets& assets,
     centreScreen = glm::scale(centreScreen, {0.59f, 0.332f, 1.0f});
     assets.errorScreen.Bind();
     DrawMesh(quad, centreScreen,
-             {{1.0f, 1.0f, 1.0f}, true, 0.72f, 0.0f, 8.0f}, uniforms);
+             {{1.0f, 1.0f, 1.0f}, true, 0.82f, 0.0f, 8.0f}, uniforms);
 }
 
 void SetLights(const ShaderUniforms& uniforms)
 {
-    const std::array<glm::vec3, 3> positions{{
-        {0.0f, 1.14f, 0.02f},
-        {-2.55f, 2.28f, 0.72f},
-        {1.75f, 1.62f, -1.25f}
+    // All visible light now has a believable source: monitors, desk lamp, and city/window glow.
+    const std::array<glm::vec3, 4> positions{{
+        { 0.00f, 1.14f,  0.28f}, // monitor glow, just in front of the screens
+        {-0.58f, 1.02f, -0.10f}, // warm desk lamp
+        {-0.85f, 1.75f,  3.35f}, // cool city/sky glow through the window
+        { 1.20f, 1.55f,  3.20f}  // softer warm city-window bounce
     }};
-    const std::array<glm::vec3, 3> colours{{
-        {0.24f, 0.48f, 1.0f},
-        {1.0f, 0.42f, 0.16f},
-        {0.16f, 0.28f, 0.62f}
+    const std::array<glm::vec3, 4> colours{{
+        {0.14f, 0.29f, 0.72f},
+        {1.00f, 0.43f, 0.20f},
+        {0.18f, 0.30f, 0.56f},
+        {0.72f, 0.42f, 0.20f}
     }};
-    const std::array<float, 3> intensities{{2.65f, 2.85f, 1.90f}};
+    const std::array<float, 4> intensities{{2.55f, 0.48f, 1.45f, 0.55f}};
 
     glUniform3fv(uniforms.viewPosition, 1, glm::value_ptr(cameraPosition));
-    glUniform3f(uniforms.ambientColour, 0.045f, 0.050f, 0.075f);
-    for (int i = 0; i < 3; ++i)
+    glUniform3f(uniforms.ambientColour, 0.045f, 0.050f, 0.070f);
+    for (int i = 0; i < 4; ++i)
     {
         glUniform3fv(uniforms.lightPositions[i], 1, glm::value_ptr(positions[i]));
         glUniform3fv(uniforms.lightColours[i], 1, glm::value_ptr(colours[i]));
