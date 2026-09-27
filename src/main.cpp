@@ -36,6 +36,7 @@ struct Material
     float emissive;
     float specular;
     float shininess;
+    bool cityLighting = false;
 };
 
 struct ShaderUniforms
@@ -51,6 +52,7 @@ struct ShaderUniforms
     GLint shininess;
     GLint viewPosition;
     GLint ambientColour;
+    GLint cityLighting;
     std::array<GLint, 3> lightPositions;
     std::array<GLint, 3> lightColours;
     std::array<GLint, 3> lightIntensities;
@@ -60,7 +62,7 @@ struct ShaderUniforms
         if (model < 0 || view < 0 || projection < 0 || objectColour < 0 ||
             useTexture < 0 || diffuseTexture < 0 || emissiveStrength < 0 ||
             specularStrength < 0 || shininess < 0 || viewPosition < 0 ||
-            ambientColour < 0)
+            ambientColour < 0 || cityLighting < 0)
             return false;
         for (int i = 0; i < 3; ++i)
         {
@@ -102,9 +104,9 @@ struct SceneAssets
                plant.Load(models / "bk_plant" / "bk_plant.obj") &&
                lamp.Load(models / "bk_lamp" / "bk_lamp.obj") &&
                bed.Load(models / "bk_bed_alt" / "bk_bed_alt.obj") &&
-               towerA.Load(models / "bk_tower_a" / "bk_tower_a.obj") &&
-               towerB.Load(models / "bk_tower_b" / "bk_tower_b.obj") &&
-               towerC.Load(models / "bk_tower_c" / "bk_tower_c.obj") &&
+               towerA.Load(models / "bk_city_glass" / "bk_city_glass.obj") &&
+               towerB.Load(models / "bk_city_office" / "bk_city_office.obj") &&
+               towerC.Load(models / "bk_city_highrise" / "bk_city_highrise.obj") &&
                curtains.Load(models / "curtain" / "curtain.obj") &&
                wallBookshelf.Load(models / "bk_wall_shelf" / "bk_wall_shelf.obj") &&
                books.Load(models / "bk_books" / "bk_books.obj") &&
@@ -144,6 +146,7 @@ ShaderUniforms GetUniforms(const Shader& shader)
         shader.GetUniformLocation("shininess"),
         shader.GetUniformLocation("viewPosition"),
         shader.GetUniformLocation("ambientColour"),
+        shader.GetUniformLocation("cityLighting"),
         {}, {}, {}
     };
     for (int i = 0; i < 3; ++i)
@@ -171,6 +174,7 @@ void SetMaterial(const ShaderUniforms& uniforms, const Material& material)
     glUniform1f(uniforms.emissiveStrength, material.emissive);
     glUniform1f(uniforms.specularStrength, material.specular);
     glUniform1f(uniforms.shininess, material.shininess);
+    glUniform1i(uniforms.cityLighting, material.cityLighting ? GL_TRUE : GL_FALSE);
 }
 
 void DrawMesh(const Mesh& mesh, const glm::mat4& model, const Material& material,
@@ -182,11 +186,12 @@ void DrawMesh(const Mesh& mesh, const glm::mat4& model, const Material& material
 }
 
 void DrawModel(const Model& model, const SceneTransform& transform,
-               const ShaderUniforms& uniforms)
+               const ShaderUniforms& uniforms, bool cityLighting = false)
 {
     glUniformMatrix4fv(uniforms.model, 1, GL_FALSE,
                        glm::value_ptr(TransformMatrix(transform)));
     Material material = texturedMaterial;
+    material.cityLighting = cityLighting;
     material.useTexture = model.HasTexture();
     if (!material.useTexture)
         material.colour = model.GetDiffuseColour();
@@ -274,18 +279,18 @@ void RenderScene(const SceneAssets& assets, const Environment& environment, cons
     {
         const Model& model=tower.kind==0?assets.towerA:
                            tower.kind==1?assets.towerB:assets.towerC;
-        DrawModel(model,{tower.position,tower.scale,tower.yaw},uniforms);
+        DrawModel(model,{tower.position,tower.scale,tower.yaw},uniforms,true);
     }
-    for(int row=2;row<4;++row)
-        for(int col=-6;col<=6;++col)
+    for(int row=0;row<2;++row)
+        for(int col=-4;col<=4;++col)
         {
             const int seed=(col+8)*37+row*83;
-            const float width=2.2f+(seed%5)*.27f;
-            const float depth=2.3f+(seed%3)*.5f;
-            const float height=10.0f+(seed%14)*1.0f;
-            DrawModel(assets.towerC,
-                {{col*(4.4f+row*.65f)+(row%2)*1.8f,-18.0f,22.0f+row*14.0f},
-                 {width/1.203f,height,depth/.762f},12.0f+(seed%4)*7.0f},uniforms);
+            const float width=10.0f+(seed%5);
+            const float height=18.0f+(seed%14);
+            const Model& model=seed%3==0?assets.towerA:seed%3==1?assets.towerB:assets.towerC;
+            DrawModel(model,
+                {{col*10.5f+row*3.0f,-18.0f,80.0f+row*20.0f},
+                 {width,height,width},12.0f+(seed%4)*11.0f},uniforms,true);
         }
     DrawModel(assets.curtains, {{.27f,.79f,2.65f},{1.08f,.61f,.50f},180.0f}, uniforms);
     // Open-front wood bookshelf fixed to the wall above the bed's headboard.
@@ -386,7 +391,7 @@ int main(int argc, char** argv)
         shader.UseShader();
 
         const glm::mat4 perspective = glm::perspective(glm::radians(cameraFovDegrees),
-            static_cast<float>(width) / static_cast<float>(height), 0.08f, 100.0f);
+            static_cast<float>(width) / static_cast<float>(height), 0.08f, 180.0f);
         glUniformMatrix4fv(uniforms.view, 1, GL_FALSE, glm::value_ptr(camera));
         glUniformMatrix4fv(uniforms.projection, 1, GL_FALSE, glm::value_ptr(perspective));
         SetLights(uniforms);

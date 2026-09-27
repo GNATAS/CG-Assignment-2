@@ -12,6 +12,7 @@ uniform vec3 objectColour;
 uniform float emissiveStrength;
 uniform float specularStrength;
 uniform float shininess;
+uniform bool cityLighting;
 
 uniform vec3 viewPosition;
 uniform vec3 ambientColour;
@@ -45,5 +46,25 @@ void main()
     }
 
     result += baseColour * emissiveStrength;
+    if (cityLighting)
+    {
+        // City-only moonlight and window illumination. Atlas alpha identifies
+        // glass from the imported facade; no freestanding window rectangles.
+        float moon = max(dot(normal, normalize(vec3(-.4,.8,-.6))), 0.0);
+        result = baseColour * vec3(.20,.25,.36) * (.45 + .55 * moon);
+        float glass = texture(diffuseTexture, textureCoordinate).a;
+        // Window bays in the facade material, with dark mullions between them.
+        vec2 facadeUV = abs(normal.x)>abs(normal.z) ? worldPosition.zy : worldPosition.xy;
+        vec2 bay = fract(facadeUV*vec2(1.30,.90));
+        glass *= step(.15,bay.x)*step(bay.x,.85)*step(.14,bay.y)*step(bay.y,.84);
+        glass *= 1.0-step(.45,abs(normal.y));
+        vec3 cell = floor(worldPosition * vec3(1.30,.90,1.30));
+        float hash = fract(sin(dot(cell,vec3(12.9898,78.233,37.719))) * 43758.5453);
+        vec3 pane = hash > .68 ? (hash > .92 ? vec3(.33,.56,.70) : vec3(.72,.48,.23))
+                              : vec3(.018,.035,.064);
+        result = mix(result, pane, glass);
+        float haze = clamp((length(viewPosition-worldPosition)-25.0)/150.0,0.0,.55);
+        result = mix(result,vec3(.020,.030,.052),haze);
+    }
     colour = vec4(result, 1.0);
 }

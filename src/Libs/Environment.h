@@ -14,13 +14,16 @@ class Environment
 public:
     struct Part { Mesh mesh; glm::vec3 colour; float emissive; float specular=.025f; float shininess=16.0f; };
     struct TowerPlacement { int kind; glm::vec3 position; glm::vec3 scale; float yaw; };
-    static std::array<TowerPlacement,5> Towers()
+    static std::array<TowerPlacement,8> Towers()
     {
-        return {{{0,{-11.0f,-18.0f,19.0f},{7.0f,24.0f,7.0f},9.0f},
-                 {1,{-3.0f,-18.0f,24.0f},{7.0f,22.0f,7.0f},-11.0f},
-                 {2,{6.0f,-18.0f,20.0f},{7.0f,19.0f,7.0f},8.0f},
-                 {0,{16.0f,-18.0f,32.0f},{7.0f,23.0f,7.0f},-18.0f},
-                 {1,{-21.0f,-18.0f,34.0f},{7.0f,21.0f,7.0f},14.0f}}};
+        return {{{0,{-12.0f,-18.0f,40.0f},{18.0f,20.0f,20.0f},12.0f},
+                 {1,{-3.0f,-18.0f,35.0f},{13.0f,16.0f,15.0f},-16.0f},
+                 {2,{6.0f,-18.0f,42.0f},{13.0f,19.0f,13.0f},18.0f},
+                 {0,{15.0f,-18.0f,48.0f},{18.0f,25.0f,18.0f},-15.0f},
+                 {1,{-22.0f,-18.0f,50.0f},{17.0f,20.0f,17.0f},20.0f},
+                 {2,{-9.0f,-18.0f,57.0f},{16.0f,23.0f,16.0f},-10.0f},
+                 {0,{4.0f,-18.0f,62.0f},{22.0f,27.0f,22.0f},16.0f},
+                 {1,{23.0f,-18.0f,64.0f},{16.0f,21.0f,16.0f},-22.0f}}};
     }
     std::vector<Part> parts;
 
@@ -86,72 +89,8 @@ public:
         for(float z : {-1.85f,.55f})
             Box(19,{.25f,.017f,z},{2.30f,.004f,.032f});
 
-        Box(5,{0,10,85.0f},{180,120,.2f});
-        // Lit apartment windows sit just ahead of the dark imported facades.
-        // The building silhouette and surface detail remain the OBJ meshes.
-        const std::array<glm::vec2,3> footprints{{{.816f,.616f},{.819f,.618f},{1.203f,.762f}}};
-        int towerIndex=0;
-        for(const TowerPlacement& tower:Towers())
-        {
-            const float width=tower.scale.x*footprints[tower.kind].x;
-            const float depth=tower.scale.z*footprints[tower.kind].y;
-            const glm::mat4 parent=glm::rotate(
-                glm::translate(glm::mat4(1),tower.position),
-                glm::radians(tower.yaw),{0,1,0});
-            const int columns=std::max(2,int(width/1.1f));
-            const int floors=int(tower.scale.y/1.10f);
-            for(int floor=12;floor<floors;++floor)
-                for(int col=0;col<columns;++col)
-                {
-                    int choice=(towerIndex*13+floor*7+col*11)%9;
-                    if(choice<4) continue;
-                    const float x=-width*.5f+(col+.5f)*width/columns;
-                    const float y=.54f+floor*1.1f;
-                    Box(choice%3==0?10:9,{x,y,-depth*.5f-.09f},
-                        {.41f,.52f,.04f},parent);
-                }
-            ++towerIndex;
-        }
-        // Lit windows over the distant imported office-building instances.
-        for (int row=2;row<4;++row)
-        {
-            const float z=22.0f+row*14.0f;
-            for (int col=-6;col<=6;++col)
-            {
-                const int seed=(col+8)*37+row*83;
-                const float x=col*(4.4f+row*.65f)+(row%2)*1.8f;
-                const float width=2.2f+(seed%5)*.27f;
-                const float depth=2.3f+(seed%3)*.5f;
-                const float height=10.0f+(seed%14)*1.0f;
-                const float yaw=12.0f+(seed%4)*7.0f;
-                const glm::mat4 parent=glm::rotate(
-                    glm::translate(glm::mat4(1),{x,-18.0f,z}),
-                    glm::radians(yaw),{0,1,0});
-                const int floors=int(height/.80f);
-                for(int floor=0;floor<floors;++floor)
-                {
-                    const float y=.45f+floor*.80f;
-                    // Recessed dark window strips and lit panes on all faces.
-                    for(int side=0;side<4;++side)
-                    {
-                        const bool front=side<2;
-                        const float span=front?width:depth;
-                        const int count=int(span/.47f);
-                        for(int c=0;c<count;++c)
-                        {
-                            const int hash=seed+floor*19+c*7+side*11;
-                            const int material=hash%5<2?11:(hash%4==0?10:9);
-                            const float a=-span*.5f+(c+.5f)*span/count;
-                            const float sign=side%2==0?-1.f:1.f;
-                            Box(material,front?glm::vec3(a,y,sign*(depth*.5f+.025f)):
-                                glm::vec3(sign*(width*.5f+.025f),y,a),
-                                front?glm::vec3(.23f,.34f,.018f):glm::vec3(.018f,.34f,.23f),
-                                parent);
-                        }
-                    }
-                }
-            }
-        }
+        Box(5,{0,10,140.0f},{240,140,.2f});
+        // Exterior buildings and window illumination are rendered on OBJ meshes.
         for (size_t i=0;i<colours.size();++i)
         {
             if(indices[i].empty()) continue;

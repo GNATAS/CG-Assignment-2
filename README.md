@@ -3,8 +3,8 @@
 An 800 × 600 C++17 / OpenGL 3.3 scene of a programmer working in a high-rise
 condo at night. The person, desk, monitors, keyboard and mouse remain the
 pair's original models. Other furniture, curtains and city
-buildings use external OBJ models. The room, window and city lights are drawn
-from vertices in `src/Libs/Environment.h`.
+buildings use external OBJ models. The room and window are drawn
+from vertices in `src/Libs/Environment.h`; city window lights use the fragment shader.
 
 ## Build and run
 
@@ -20,7 +20,7 @@ The source, shaders, texture and model files under `src/`, `Shaders/` and
 `CMakePresets.json` and `vcpkg.json` describe the build dependencies.
 Escape closes the program.
 
-The latest 800 × 600 preview is `build/side-table-beside-desk.png`.
+The latest 800 × 600 preview is `build/city-obj-preview.png`.
 The user's curtain export is triangulated in `Models/curtain/curtain.obj`.
 The metal curtain pole, end caps and wall brackets use triangulated cylinders
 with a specular material in `src/Libs/Environment.h`.
@@ -29,8 +29,12 @@ potted plant, with more than 0.32 m clearance from the curtain. A round oak
 side table sits beside the computer desk, with its reading lamp aimed toward
 the seated person and a small plant on the tabletop. A wall clock sits
 above the headboard shelf. The incorrect floor-mounted wall shelf is removed.
-The white wall art and old tall bookshelf remain removed. The exterior city
-and original workstation are unchanged by this furnishing update. A captured frame
+The white wall art and old tall bookshelf remain removed. The original
+workstation and interior layout are unchanged by the skyline update.
+The city uses three external triangulated OBJ building models in 26 placements,
+with varied heights, visible rooftops, night window lights and distance haze.
+Black source facade textures are replaced with slate-blue facade materials;
+the original full PBR appearance is not reproduced. A captured frame
 reported GL error 0, but the earlier on-screen flicker has not been verified
 fixed.
 
