@@ -21,11 +21,15 @@ public:
     void Render() const;
 
     const ModelBounds& GetBounds() const { return bounds; }
+    bool HasTexture() const { return hasTexture; }
+    const glm::vec3& GetDiffuseColour() const { return diffuseColour; }
 
 private:
     Mesh mesh;
     Texture texture;
     ModelBounds bounds;
+    bool hasTexture = false;
+    glm::vec3 diffuseColour{1.0f};
 };
 
 #endif

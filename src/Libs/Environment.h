@@ -1,7 +1,10 @@
 #pragma once
 #include "Mesh.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
 #include <array>
+#include <cmath>
+#include <iostream>
 #include <vector>
 
 // Static environment geometry is combined by material at startup, avoiding
@@ -9,22 +12,31 @@
 class Environment
 {
 public:
-    struct Part { Mesh mesh; glm::vec3 colour; float emissive; };
+    struct Part { Mesh mesh; glm::vec3 colour; float emissive; float specular=.025f; float shininess=16.0f; };
+    struct TowerPlacement { int kind; glm::vec3 position; glm::vec3 scale; float yaw; };
+    static std::array<TowerPlacement,5> Towers()
+    {
+        return {{{0,{-11.0f,-18.0f,19.0f},{7.0f,24.0f,7.0f},9.0f},
+                 {1,{-3.0f,-18.0f,24.0f},{7.0f,22.0f,7.0f},-11.0f},
+                 {2,{6.0f,-18.0f,20.0f},{7.0f,19.0f,7.0f},8.0f},
+                 {0,{16.0f,-18.0f,32.0f},{7.0f,23.0f,7.0f},-18.0f},
+                 {1,{-21.0f,-18.0f,34.0f},{7.0f,21.0f,7.0f},14.0f}}};
+    }
     std::vector<Part> parts;
 
     bool Build()
     {
-        const std::array<glm::vec3,20> colours{{
+        const std::array<glm::vec3,21> colours{{
             {.48f,.46f,.42f}, {.26f,.16f,.085f}, {.10f,.085f,.065f},
             {.065f,.075f,.085f}, {.60f,.57f,.50f}, {.017f,.030f,.065f},
             {.075f,.095f,.13f}, {.10f,.12f,.15f}, {.042f,.065f,.11f},
             {.72f,.52f,.29f}, {.26f,.45f,.65f}, {.075f,.13f,.20f},
             {.34f,.34f,.32f}, {.8f,.15f,.08f},
             {.60f,.20f,.15f}, {.12f,.32f,.36f}, {.55f,.40f,.16f},
-            {.80f,.77f,.66f}, {.21f,.31f,.40f}, {.34f,.43f,.50f}
+            {.80f,.77f,.66f}, {.21f,.31f,.40f}, {.34f,.43f,.50f}, {.42f,.45f,.49f}
         }};
-        const std::array<float,20> emission{{.025f,0,0,0,.02f,1,.40f,.40f,.65f,1.1f,.85f,.45f,.1f,1,
-            .10f,.10f,.10f,.06f,.05f,.05f}};
+        const std::array<float,21> emission{{.025f,0,0,0,.02f,1,.40f,.40f,.65f,1.1f,.85f,.45f,.1f,1,
+            .10f,.10f,.10f,.06f,.05f,.05f,0}};
         vertices.resize(colours.size()); indices.resize(colours.size());
         // Room shell, with a real opening on the far wall.
         Box(0,{0,2.85f,-.1f},{6.4f,.12f,6.4f});
@@ -56,36 +68,16 @@ public:
         for (float x : {-2.927f,-2.873f})
             Box(3,{x,.30f,2.847f},{.012f,.035f,.008f});
 
-        // Gathered fabric curtains. Alternating depths describe the folds
-        // without transparent surfaces or coplanar overlays.
-        Box(3,{.30f,2.48f,2.60f},{3.94f,.035f,.035f});
-        for(float side : {-1.55f,2.15f})
+        // Metal curtain pole, capped ends and three brackets anchored to the wall.
+        Cylinder(20,{-1.86f,2.47f,2.59f},{2.40f,2.47f,2.59f},.023f);
+        for(float x : {-1.86f,2.40f})
+            Cylinder(20,{x-.028f,2.47f,2.59f},{x+.028f,2.47f,2.59f},.045f);
+        for(float x : {-1.66f,.27f,2.20f})
         {
-            for(int fold=0;fold<7;++fold)
-                Box(fold%2?18:19,{side+(fold-3)*.046f,1.64f,
-                    2.61f-(fold%2)*.035f},{.052f,1.62f,.055f});
-            Box(16,{side,1.34f,2.55f},{.34f,.045f,.028f});
+            Cylinder(20,{x,2.40f,2.87f},{x,2.40f,2.895f},.052f);
+            Cylinder(20,{x,2.40f,2.87f},{x,2.40f,2.59f},.013f);
+            Cylinder(20,{x,2.40f,2.59f},{x,2.47f,2.59f},.013f);
         }
-
-        // Original geometric wall print (no text or downloaded artwork).
-        Box(2,{-2.34f,2.01f,2.82f},{.86f,.91f,.065f});
-        Box(17,{-2.34f,2.01f,2.778f},{.78f,.83f,.012f});
-        Box(18,{-2.34f,1.83f,2.766f},{.66f,.33f,.009f});
-        Box(15,{-2.53f,1.98f,2.754f},{.24f,.35f,.009f});
-        Box(16,{-2.17f,2.18f,2.754f},{.22f,.22f,.009f});
-        Box(14,{-2.24f,1.93f,2.743f},{.26f,.09f,.009f});
-
-        // Floating shelf above the headboard, with small books and a photo frame.
-        Box(1,{-2.34f,1.36f,2.65f},{1.07f,.055f,.38f});
-        for(int book=0;book<5;++book)
-        {
-            float h=.19f+(book%3)*.025f;
-            Box(14+book%3,{-2.68f+book*.055f,1.39f+h*.5f,2.64f},
-                {.045f,h,.17f});
-        }
-        Box(3,{-2.03f,1.52f,2.60f},{.24f,.26f,.035f});
-        Box(17,{-2.03f,1.52f,2.578f},{.20f,.22f,.009f});
-        Box(15,{-2.03f,1.485f,2.568f},{.17f,.12f,.009f});
 
         // Fabric rug and border below the workstation, clear of the floor.
         Box(18,{.25f,.009f,-.65f},{2.40f,.012f,2.50f});
@@ -94,48 +86,34 @@ public:
         for(float z : {-1.85f,.55f})
             Box(19,{.25f,.017f,z},{2.30f,.004f,.032f});
 
-        // Books share the imported shelf's position/orientation. Shelf levels
-        // were measured from its OBJ at the displayed 1.85 m height.
-        const glm::mat4 shelf=glm::rotate(
-            glm::translate(glm::mat4(1),{2.78f,0,1.05f}),
-            glm::radians(-90.0f),{0,1,0});
-        const std::array<float,6> levels{{.10f,.35f,.60f,.86f,1.14f,1.49f}};
-        for(int row=0;row<6;++row)
-        {
-            for(int book=0;book<10;++book)
-            {
-                const float height=.16f+((row*3+book)%4)*.017f;
-                const float x=-.47f+book*.067f;
-                const int cover=14+(row+book)%3;
-                Box(cover,{x,levels[row]+height*.5f,.075f},{.055f,height,.29f},shelf);
-                Box(17,{x,levels[row]+height-.014f,.066f},{.041f,.01f,.25f},shelf);
-                // Fine gold/cream spine bands rather than unreadable text.
-                for(float offset : {.035f,.07f})
-                    Box(17,{x,levels[row]+offset,.224f},{.044f,.006f,.006f},shelf);
-            }
-            for(int book=0;book<3;++book)
-                Box(14+(row+book)%3,{.37f,levels[row]+.017f+book*.036f,.07f},
-                    {.27f,.031f,.28f},shelf);
-        }
-        // Single bed along the opposite wall (screen-right in this rear view).
-        Box(1,{-2.15f,.23f,.65f},{1.40f,.28f,2.35f});
-        for(float x : {-2.71f,-1.59f})
-            for(float z : {-.38f,1.68f})
-                Box(2,{x,.10f,z},{.09f,.20f,.09f});
-        Box(18,{-2.15f,.64f,1.88f},{1.46f,1.05f,.12f}); // upholstered headboard
-        for(int panel=0;panel<5;++panel)
-            Box(19,{-2.71f+panel*.28f,.73f,1.808f},{.26f,.74f,.024f});
-        Box(17,{-2.15f,.43f,.65f},{1.36f,.20f,2.25f}); // mattress
-        Box(18,{-2.15f,.555f,.23f},{1.38f,.065f,1.44f}); // duvet
-        Box(19,{-2.15f,.598f,.88f},{1.39f,.04f,.24f}); // folded edge
-        for(float x : {-2.78f,-1.52f})
-            Box(18,{x,.46f,.23f},{.06f,.18f,1.45f}); // hanging sides
-        Box(17,{-2.15f,.60f,1.38f},{.93f,.15f,.43f}); // pillow
-        Box(4,{-2.15f,.676f,1.38f},{.80f,.014f,.34f});
-
         Box(5,{0,10,85.0f},{180,120,.2f});
-        // A real 3D skyline: depth, rotated footprints, side windows and roofs.
-        for (int row=0;row<4;++row)
+        // Lit apartment windows sit just ahead of the dark imported facades.
+        // The building silhouette and surface detail remain the OBJ meshes.
+        const std::array<glm::vec2,3> footprints{{{.816f,.616f},{.819f,.618f},{1.203f,.762f}}};
+        int towerIndex=0;
+        for(const TowerPlacement& tower:Towers())
+        {
+            const float width=tower.scale.x*footprints[tower.kind].x;
+            const float depth=tower.scale.z*footprints[tower.kind].y;
+            const glm::mat4 parent=glm::rotate(
+                glm::translate(glm::mat4(1),tower.position),
+                glm::radians(tower.yaw),{0,1,0});
+            const int columns=std::max(2,int(width/1.1f));
+            const int floors=int(tower.scale.y/1.10f);
+            for(int floor=12;floor<floors;++floor)
+                for(int col=0;col<columns;++col)
+                {
+                    int choice=(towerIndex*13+floor*7+col*11)%9;
+                    if(choice<4) continue;
+                    const float x=-width*.5f+(col+.5f)*width/columns;
+                    const float y=.54f+floor*1.1f;
+                    Box(choice%3==0?10:9,{x,y,-depth*.5f-.09f},
+                        {.41f,.52f,.04f},parent);
+                }
+            ++towerIndex;
+        }
+        // Lit windows over the distant imported office-building instances.
+        for (int row=2;row<4;++row)
         {
             const float z=22.0f+row*14.0f;
             for (int col=-6;col<=6;++col)
@@ -149,15 +127,6 @@ public:
                 const glm::mat4 parent=glm::rotate(
                     glm::translate(glm::mat4(1),{x,-18.0f,z}),
                     glm::radians(yaw),{0,1,0});
-                const int facade=row>=2?8:6+seed%2;
-                Box(facade,{0,height*.5f,0},{width,height,depth},parent);
-                Box(7,{0,height+.10f,0},{width+.12f,.20f,depth+.12f},parent);
-                Box(12,{width*.15f,height+.42f,0},{width*.40f,.60f,depth*.45f},parent);
-                if(seed%3==0)
-                {
-                    Box(7,{0,height+1.0f,0},{.06f,1.6f,.06f},parent);
-                    Box(13,{0,height+1.83f,0},{.09f,.09f,.09f},parent);
-                }
                 const int floors=int(height/.80f);
                 for(int floor=0;floor<floors;++floor)
                 {
@@ -181,17 +150,19 @@ public:
                         }
                     }
                 }
-                // Vertical corner pilasters give building sides a readable edge.
-                for(float edge : {-1.f,1.f})
-                    Box(7,{edge*width*.49f,height*.5f,-depth*.5f-.025f},
-                        {.075f,height,.05f},parent);
             }
         }
         for (size_t i=0;i<colours.size();++i)
         {
+            if(indices[i].empty()) continue;
             Part part;
             part.colour=colours[i]; part.emissive=emission[i];
-            if(!part.mesh.CreateMesh(vertices[i],indices[i])) return false;
+            if(i==20) { part.specular=.65f; part.shininess=64.0f; }
+            if(!part.mesh.CreateMesh(vertices[i],indices[i]))
+            {
+                std::cerr << "Environment mesh failed for material " << i << '\n';
+                return false;
+            }
             parts.push_back(std::move(part));
         }
         vertices.clear(); indices.clear();
@@ -200,6 +171,32 @@ public:
 private:
     std::vector<std::vector<Vertex>> vertices;
     std::vector<std::vector<unsigned int>> indices;
+    void Cylinder(int material,glm::vec3 a,glm::vec3 b,float radius)
+    {
+        const glm::vec3 axis=glm::normalize(b-a);
+        const glm::vec3 helper=std::abs(axis.y)<.9f?glm::vec3(0,1,0):glm::vec3(1,0,0);
+        const glm::vec3 u=glm::normalize(glm::cross(axis,helper));
+        const glm::vec3 v=glm::cross(axis,u);
+        auto& vs=vertices[material]; auto& is=indices[material];
+        auto vertex=[&](glm::vec3 p,glm::vec3 n) {
+            vs.push_back({p.x,p.y,p.z,0,0,n.x,n.y,n.z});
+        };
+        constexpr int segments=24;
+        for(int i=0;i<segments;++i)
+        {
+            const float t0=6.283185307f*i/segments, t1=6.283185307f*(i+1)/segments;
+            const glm::vec3 n0=u*std::cos(t0)+v*std::sin(t0);
+            const glm::vec3 n1=u*std::cos(t1)+v*std::sin(t1);
+            unsigned int start=static_cast<unsigned int>(vs.size());
+            vertex(a+radius*n0,n0); vertex(a+radius*n1,n1);
+            vertex(b+radius*n1,n1); vertex(b+radius*n0,n0);
+            for(unsigned int k : {0u,1u,2u,0u,2u,3u}) is.push_back(start+k);
+            start=static_cast<unsigned int>(vs.size());
+            vertex(a,-axis); vertex(a+radius*n1,-axis); vertex(a+radius*n0,-axis);
+            vertex(b,axis); vertex(b+radius*n0,axis); vertex(b+radius*n1,axis);
+            for(unsigned int k=0;k<6;++k) is.push_back(start+k);
+        }
+    }
     void Box(int material,glm::vec3 centre,glm::vec3 size,
              const glm::mat4& parent=glm::mat4(1))
     {

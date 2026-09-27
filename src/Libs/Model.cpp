@@ -144,16 +144,24 @@ bool Model::Load(const std::filesystem::path& objPath)
     }
 
     int materialId = usedMaterials.empty() ? (materials.empty() ? -1 : 0) : *usedMaterials.begin();
-    if (materialId < 0 || static_cast<std::size_t>(materialId) >= materials.size() ||
-        materials[materialId].diffuse_texname.empty())
+    hasTexture = false;
+    diffuseColour = glm::vec3(1.0f);
+    if (materialId >= 0 && static_cast<std::size_t>(materialId) < materials.size())
     {
-        std::cerr << "Model has no diffuse texture in its MTL: " << objPath << '\n';
-        return false;
+        const auto& material = materials[materialId];
+        diffuseColour = glm::vec3(material.diffuse[0], material.diffuse[1], material.diffuse[2]);
+        if (!material.diffuse_texname.empty())
+        {
+            const auto texturePath = objPath.parent_path() /
+                std::filesystem::u8path(material.diffuse_texname);
+            if (!texture.Load(texturePath))
+                return false;
+            hasTexture = true;
+        }
     }
-
-    const std::filesystem::path texturePath =
-        objPath.parent_path() / std::filesystem::u8path(materials[materialId].diffuse_texname);
-    if (!texture.Load(texturePath) || !mesh.CreateMesh(vertices, indices))
+    if (!hasTexture)
+        std::cout << "Using MTL diffuse colour (no diffuse texture): " << objPath.filename() << '\n';
+    if (!mesh.CreateMesh(vertices, indices))
         return false;
 
     std::cout << "Loaded model " << objPath.filename()
@@ -167,6 +175,7 @@ bool Model::Load(const std::filesystem::path& objPath)
 
 void Model::Render() const
 {
-    texture.Bind();
+    if (hasTexture)
+        texture.Bind();
     mesh.RenderMesh();
 }

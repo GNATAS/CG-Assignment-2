@@ -79,8 +79,16 @@ struct SceneAssets
     Model keyboard;
     Model mouse;
     Model plant;
-    Model bookshelf;
     Model lamp;
+    Model bed;
+    Model towerA;
+    Model towerB;
+    Model towerC;
+    Model curtains;
+    Model wallBookshelf;
+    Model books;
+    Model sideTable;
+    Model wallClock;
     Texture errorScreen;
 
     bool Load(const std::filesystem::path& assetRoot)
@@ -91,9 +99,17 @@ struct SceneAssets
                monitor.Load(models / "monitor" / "monitor.obj") &&
                keyboard.Load(models / "keyboard" / "keyboard.obj") &&
                mouse.Load(models / "mouse" / "mouse.obj") &&
-               plant.Load(models / "potted_plant_01" / "potted_plant_01.obj") &&
-               bookshelf.Load(models / "wooden_bookshelf_worn" / "wooden_bookshelf_worn.obj") &&
-               lamp.Load(models / "desk_lamp_arm_01" / "desk_lamp_arm_01.obj") &&
+               plant.Load(models / "bk_plant" / "bk_plant.obj") &&
+               lamp.Load(models / "bk_lamp" / "bk_lamp.obj") &&
+               bed.Load(models / "bk_bed_alt" / "bk_bed_alt.obj") &&
+               towerA.Load(models / "bk_tower_a" / "bk_tower_a.obj") &&
+               towerB.Load(models / "bk_tower_b" / "bk_tower_b.obj") &&
+               towerC.Load(models / "bk_tower_c" / "bk_tower_c.obj") &&
+               curtains.Load(models / "curtain" / "curtain.obj") &&
+               wallBookshelf.Load(models / "bk_wall_shelf" / "bk_wall_shelf.obj") &&
+               books.Load(models / "bk_books" / "bk_books.obj") &&
+               sideTable.Load(models / "bk_side_table" / "bk_side_table.obj") &&
+               wallClock.Load(models / "bk_wall_clock" / "bk_wall_clock.obj") &&
                errorScreen.Load(assetRoot / "Textures" / "screen_error.png");
     }
 };
@@ -170,7 +186,11 @@ void DrawModel(const Model& model, const SceneTransform& transform,
 {
     glUniformMatrix4fv(uniforms.model, 1, GL_FALSE,
                        glm::value_ptr(TransformMatrix(transform)));
-    SetMaterial(uniforms, texturedMaterial);
+    Material material = texturedMaterial;
+    material.useTexture = model.HasTexture();
+    if (!material.useTexture)
+        material.colour = model.GetDiffuseColour();
+    SetMaterial(uniforms, material);
     model.Render();
 }
 
@@ -249,16 +269,47 @@ void RenderScene(const SceneAssets& assets, const Environment& environment, cons
                  const ShaderUniforms& uniforms)
 {
     for (const auto& part : environment.parts)
-        DrawMesh(part.mesh, glm::mat4(1), {part.colour,false,part.emissive,0.025f,16.0f}, uniforms);
-    DrawModel(assets.bookshelf, {{2.78f,0.0f,1.05f},{1.85f,1.85f,1.85f},-90.0f}, uniforms);
+        DrawMesh(part.mesh, glm::mat4(1), {part.colour,false,part.emissive,part.specular,part.shininess}, uniforms);
+    for(const auto& tower:Environment::Towers())
+    {
+        const Model& model=tower.kind==0?assets.towerA:
+                           tower.kind==1?assets.towerB:assets.towerC;
+        DrawModel(model,{tower.position,tower.scale,tower.yaw},uniforms);
+    }
+    for(int row=2;row<4;++row)
+        for(int col=-6;col<=6;++col)
+        {
+            const int seed=(col+8)*37+row*83;
+            const float width=2.2f+(seed%5)*.27f;
+            const float depth=2.3f+(seed%3)*.5f;
+            const float height=10.0f+(seed%14)*1.0f;
+            DrawModel(assets.towerC,
+                {{col*(4.4f+row*.65f)+(row%2)*1.8f,-18.0f,22.0f+row*14.0f},
+                 {width/1.203f,height,depth/.762f},12.0f+(seed%4)*7.0f},uniforms);
+        }
+    DrawModel(assets.curtains, {{.27f,.79f,2.65f},{1.08f,.61f,.50f},180.0f}, uniforms);
+    // Open-front wood bookshelf fixed to the wall above the bed's headboard.
+    // The shelf's bottom deck is at local y=.04; books rest on that surface.
+    // Right edge x=-2.107 leaves >.32 m to the curtain's nearest edge.
+    DrawModel(assets.wallBookshelf, {{-2.51f,1.38f,2.63f},{.43f,.54f,.52f},180.0f}, uniforms);
+    for(float x : {-2.77f,-2.54f})
+        DrawModel(assets.books, {{x,1.402f,2.59f},{.25f,.25f,.25f},180.0f}, uniforms);
+    DrawModel(assets.plant, {{-2.25f,1.402f,2.58f},{.26f,.26f,.26f},25.0f}, uniforms);
+    DrawModel(assets.wallClock, {{-2.51f,2.05f,2.86f},{.36f,.36f,.36f},0.0f}, uniforms);
+    // Side table beside the computer desk, with the lamp arm aimed at the sitter.
+    DrawModel(assets.sideTable, {{1.30f,0.0f,-.10f},{.68f,.68f,.68f},0.0f}, uniforms);
+    DrawModel(assets.lamp, {{1.31f,.68f,-.18f},{.39f,.39f,.39f},-110.0f}, uniforms);
+    DrawModel(assets.plant, {{1.16f,.68f,.06f},{.23f,.23f,.23f},0.0f}, uniforms);
+    DrawModel(assets.plant, {{2.04f,0.0f,2.18f},{1.32f,1.32f,1.32f},35.0f}, uniforms);
     DrawModel(assets.plant, {{-1.30f,0.0f,2.05f},{1.35f,1.35f,1.35f},0.0f}, uniforms);
+    DrawModel(assets.bed, {{-2.15f,0.0f,0.65f},{.60f,.85f,.90f},180.0f}, uniforms);
     DrawModel(assets.person, personTransform, uniforms);
     DrawModel(assets.desk, deskTransform, uniforms);
     for (const SceneTransform& monitor : monitorTransforms)
         DrawModel(assets.monitor, monitor, uniforms);
     DrawModel(assets.keyboard, keyboardTransform, uniforms);
     DrawModel(assets.mouse, mouseTransform, uniforms);
-    DrawModel(assets.lamp, {{-0.60f,0.754f,-0.12f},{0.43f,0.43f,0.43f},180.0f}, uniforms);
+    DrawModel(assets.lamp, {{-0.60f,0.754f,-0.12f},{.43f,.43f,.43f},180.0f}, uniforms);
     DrawMonitorScreens(quad, assets, uniforms);
 }
 
